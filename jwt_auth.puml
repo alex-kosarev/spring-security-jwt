@@ -1,0 +1,20 @@
+@startuml
+'https://plantuml.com/sequence-diagram
+
+autonumber
+
+actor User
+
+User -> "Client\napplication": Открыть страницу n
+User <-- "Client\napplication": Логин/пароль?
+User -> "Client\napplication": Логин/пароль
+"Client\napplication" -> "Backend": <b>GET /jwt/tokens\nAuthorization: Basic ...
+"Client\napplication" <-- "Backend": <b>200 OK\n{"accessToken": "...
+"Client\napplication"->"Client\napplication": Сохранение ключей\nв безопасном месте
+"Client\napplication" -> "Backend": <b>GET /api/...\nAuthorization: Bearer...
+"Client\napplication" <-- "Backend": <b>200 OK ...
+User <-- "Client\napplication": Запрашиваемая\nинформация
+
+
+
+@enduml

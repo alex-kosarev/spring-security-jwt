@@ -11,6 +11,7 @@
     <modules>
         <module>bearer-authentication</module>
         <module>shared</module>
+        <module>cookie-authentication</module>
     </modules>
 
     <properties>

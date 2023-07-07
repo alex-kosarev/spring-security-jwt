@@ -1,0 +1,19 @@
+@startuml
+'https://plantuml.com/sequence-diagram
+
+autonumber
+
+actor User
+
+User -> "SPA/PWA": Открыть страницу n
+User <-- "SPA/PWA": Логин/пароль?
+User -> "SPA/PWA": Логин/пароль
+"SPA/PWA" -> "Backend": <b>GET /api/...\nAuthorization: Basic ...
+"SPA/PWA" <-- "Backend": <b>200 OK\nSet-cookie: __Host-auth-token: ...
+"SPA/PWA" -> "Backend": <b>GET /api/...\nCookie: __Host-auth-token: ...
+"SPA/PWA" <-- "Backend": <b>200 OK ...
+User <-- "SPA/PWA": Запрашиваемая\nинформация
+
+
+
+@enduml

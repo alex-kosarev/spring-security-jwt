@@ -10,13 +10,13 @@ import java.text.ParseException;
 import java.util.UUID;
 import java.util.function.Function;
 
-public class RefreshTokenJweStringDeserializer implements Function<String, Token> {
+public class TokenCookieJweStringDeserializer implements Function<String, Token> {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(RefreshTokenJweStringDeserializer.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(TokenCookieJweStringDeserializer.class);
 
     private final JWEDecrypter jweDecrypter;
 
-    public RefreshTokenJweStringDeserializer(JWEDecrypter jweDecrypter) {
+    public TokenCookieJweStringDeserializer(JWEDecrypter jweDecrypter) {
         this.jweDecrypter = jweDecrypter;
     }
 

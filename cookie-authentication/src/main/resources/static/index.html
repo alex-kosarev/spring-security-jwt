@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+<!-- ВХОД -->
+<h1>Вход</h1>
+<form id="login-form">
+    <label>
+        Имя пользователя:<br>
+        <input type="text" id="input-username">
+    </label><br>
+    <label>
+        Пароль:<br>
+        <input type="password" id="input-password">
+    </label><br>
+    <button type="submit">Войти</button>
+</form>
+<hr>
+<!-- CSRF -->
+<h1>CSRF</h1>
+<button id="get-csrf">Получить CSRF</button>
+<pre id="csrf"></pre>
+<hr>
+<!-- API -->
+<h1>Вызов API</h1>
+<button id="hello">Привет!</button>
+<br>
+<pre id="greeting"></pre>
+<hr>
+<!-- ВЫХОД -->
+<h1>Выход</h1>
+<button id="logout">Выйти</button>
+
+
+<script>
+    (() => {
+        document.querySelector("form#login-form").onsubmit = e => {
+            e.preventDefault();
+
+            const username = document.querySelector("input#input-username").value;
+            const password = document.querySelector("input#input-password").value;
+
+            fetch("/csrf", {
+                headers: {
+                    "Authorization": `Basic ${btoa(username + ":" + password)}`
+                }
+            }).then(response => {
+                if (response.status !== 200) {
+                    throw new Error(`Unexpected status: ${response.status}`)
+                }
+                return response.text();
+            }).then(text => {
+                document.querySelector("pre#csrf").innerText = text
+            })
+        }
+
+        document.querySelector("button#get-csrf").onclick = _ => {
+            fetch("/csrf").then(response => {
+                if (response.status !== 200) {
+                    throw new Error(`Unexpected status: ${response.status}`)
+                }
+                return response.text();
+            }).then(text => {
+                document.querySelector("pre#csrf").innerText = text
+            })
+        }
+
+        document.querySelector("button#hello").onclick = _ => {
+            fetch("/api/greetings").then(response => {
+                if (response.status !== 200) {
+                    throw new Error(`Unexpected status: ${response.status}`)
+                }
+                return response.text();
+            }).then(text => {
+                document.querySelector("pre#greeting").innerText = text
+            })
+        };
+
+        document.querySelector("button#logout").onclick = _ => {
+            const jwt = JSON.parse(document.querySelector("pre#csrf").innerText);
+            fetch(`/logout?${jwt.parameterName}=${jwt.token}`, {
+                method: "POST"
+            }).then(_ => {
+                document.querySelector("pre#csrf").innerText = '';
+                document.querySelector("pre#greeting").innerText = '';
+            })
+        }
+    })();
+</script>
+</body>
+</html>
