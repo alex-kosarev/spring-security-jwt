@@ -1,17 +1,18 @@
 package pro.akosarev.sandbox;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.crypto.DirectDecrypter;
 import com.nimbusds.jose.crypto.DirectEncrypter;
 import com.nimbusds.jose.crypto.MACSigner;
 import com.nimbusds.jose.crypto.MACVerifier;
 import com.nimbusds.jose.jwk.OctetSequenceKey;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -32,7 +33,9 @@ public class SandboxSpringSecurityJwtApplication {
     public JwtAuthenticationConfigurer jwtAuthenticationConfigurer(
             @Value("${jwt.access-token-key}") String accessTokenKey,
             @Value("${jwt.refresh-token-key}") String refreshTokenKey,
-            JdbcTemplate jdbcTemplate
+            @Qualifier("daoUserDetailsService") UserDetailsService userDetailsService,
+            JdbcTemplate jdbcTemplate,
+            ObjectMapper objectMapper
     ) throws ParseException, JOSEException {
         return new JwtAuthenticationConfigurer()
                 .accessTokenStringSerializer(new AccessTokenJwsStringSerializer(
@@ -47,16 +50,21 @@ public class SandboxSpringSecurityJwtApplication {
                 .refreshTokenStringDeserializer(new RefreshTokenJweStringDeserializer(
                         new DirectDecrypter(OctetSequenceKey.parse(refreshTokenKey))
                 ))
+                .defaultUsernameJsonBodyParameter("username")
+                .defaultPasswordJsonBodyParameter("password")
+                .nativeAppHeader("X-native-app")
+                .objectMapper(objectMapper)
+                .daoUserDetailsService(userDetailsService)
                 .jdbcTemplate(jdbcTemplate);
     }
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http,
-                                                   JwtAuthenticationConfigurer jwtAuthenticationConfigurer) throws Exception {
+    public SecurityFilterChain securityFilterChain(
+            HttpSecurity http,
+            JwtAuthenticationConfigurer jwtAuthenticationConfigurer) throws Exception {
         http.apply(jwtAuthenticationConfigurer);
 
         return http
-                .httpBasic(Customizer.withDefaults())
                 .sessionManagement(sessionManagement ->
                         sessionManagement.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(authorizeHttpRequests ->
@@ -68,6 +76,7 @@ public class SandboxSpringSecurityJwtApplication {
     }
 
     @Bean
+    @Qualifier("daoUserDetailsService")
     public UserDetailsService userDetailsService(JdbcTemplate jdbcTemplate) {
         return username -> jdbcTemplate.query("select * from t_user where c_username = ?",
                 (rs, i) -> User.builder()
